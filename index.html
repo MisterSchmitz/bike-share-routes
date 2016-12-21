@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>B-Cycle Route Finder</title>
+    <link href="css/styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  </head>
+  <body>
+  <div class="container">
+    <div class="col-md-12">
+          <div class="form-inline inputs">
+            <div class="form-group">
+              <label for="address-start">Origin:</label>
+              <input type="text" id="address-start" placeholder="Starting address" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="address-end">Destination:</label>
+              <input type="text" id="address-end" placeholder="Ending address" class="form-control">
+            </div>
+            <button type="button" id="search" class="btn btn-success">Go!</button>
+          </div>
+        <div id="directionsPanel">
+          <div id="results"></div>
+          <div id="directionsPanelStart"></div>
+          <div id="directionsPanelMiddle"></div>
+          <div id="directionsPanelEnd"></div>
+        </div>
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      // var json = require('./stations.json');
+
+      // These are the station locations.
+      // These will eventually end up in a database.
+      // Note: Google caps distance matrix requests at 25
+      var stations = [
+          {title: "21st & Arapahoe", location: {lat: 40.014528, lng: -105.267262}},
+          {title: "13th & Arapahoe", location: {lat: 40.0146, lng: -105.27778}},
+          {title: "48th & Arapahoe", location: {lat: 40.0149, lng: -105.23558}},
+          {title: "The Village", location: {lat: 40.01491, lng: -105.26061}},
+          {title: "6th & Canyon", location: {lat: 40.01506, lng: -105.28729}},
+          {title: "38th & Arapahoe", location: {lat: 40.015078, lng: -105.246967}},
+          {title: "Municipal Building", location: {lat: 40.01508, lng: -105.27959}},
+          {title: "Twenty Ninth Street South", location: {lat: 40.0161, lng: -105.25807}},
+          {title: "10th & Walnut", location: {lat: 40.016219, lng: -105.282148}},
+          {title: "14th & Canyon", location: {lat: 40.01663, lng: -105.27646}},
+          {title: "33rd & Fisher", location: {lat: 40.017395, lng: -105.249893}},
+          {title: "11th & Pearl", location: {lat: 40.017535, lng: -105.281234}},
+          {title: "15th & Pearl", location: {lat: 40.018721, lng: -105.27584}},
+          {title: "Twenty Ninth Street North", location: {lat: 40.018809, lng: -105.255959}},
+          {title: "13th & Spruce", location: {lat: 40.01909, lng: -105.278898}},
+          {title: "20th & Pearl", location: {lat: 40.019875, lng: -105.269518}},
+          {title: "Folsom & Pearl", location: {lat: 40.021441, lng: -105.263643}},
+          {title: "26th @ Pearl", location: {lat: 40.0216, lng: -105.25984}},
+          {title: "29th & Pearl", location: {lat: 40.022889, lng: -105.256461}},
+          {title: "31st & Pearl", location: {lat: 40.02308, lng: -105.25175}},
+          {title: "Broadway & Alpine", location: {lat: 40.02543, lng: -105.28144}},
+          {title: "28th & Mapleton", location: {lat: 40.0262, lng: -105.25856}},
+          {title: "Wilderness Place", location: {lat: 40.027324, lng: -105.247933}},
+          {title: "UCAR Center Green", location: {lat: 40.03154, lng: -105.24611}}
+        ];
+      
+      var markerStation = 'img/markerStation.png';
+      var markerA = 'img/markerA.png';
+      var markerB = 'img/markerB.png';
+
+      // Application variables
+      var addressStart, addressEnd, placeStart, placeEnd;
+      var walkTime=0, bikeTime=0, walkDistance=0, bikeDistance=0;
+
+      // Google Maps API variables
+      var map,geocoder,markers,bounds,infoWindow;
+
+      // Google Maps API Callback Function
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          // center: {lat: 40.014984, lng: -105.270546},  // Boulder, CO
+          // zoom: 14
+        });
+
+        // Initialize Google Maps Services
+        geocoder = new google.maps.Geocoder();
+        infoWindow = new google.maps.InfoWindow();
+        distanceMatrixService = new google.maps.DistanceMatrixService;
+        directionsService = new google.maps.DirectionsService();
+
+        markers = [];
+        
+        // Places autocomplete
+        var startAutocomplete = new google.maps.places.Autocomplete(
+          document.getElementById('address-start'));    
+        var endAutocomplete = new google.maps.places.Autocomplete(
+          document.getElementById('address-end'));
+        
+        // Bias the boundaries within the map for the text.
+        startAutocomplete.bindTo('bounds', map);
+        endAutocomplete.bindTo('bounds', map);
+        
+
+        var bounds = new google.maps.LatLngBounds();
+
+        // Create an array of B-Cycle markers
+        for (var i = 0; i < stations.length; i++) {
+
+          // Create a marker per location, and put into markers array.
+          var marker = new google.maps.Marker({
+            map: map,
+            position: stations[i].location,
+            title: stations[i].title,
+            icon: markerStation,
+            id: i
+          });
+          // Push the marker to our array of markers.
+          markers.push(marker);
+          // Extend the boundaries of the map for each marker
+          bounds.extend(marker.position);
+        }
+
+        map.fitBounds(bounds);
+
+        // User initiates search:
+        document.getElementById('search').addEventListener('click', function() {
+
+          clearAllMarkers();
+
+          document.getElementById("map").style.width = "70%";
+          document.getElementById("directionsPanel").style.left = "0px";
+
+          // User inputs
+          addressStart = document.getElementById('address-start').value;
+          addressEnd = document.getElementById('address-end').value;
+          
+          // User inputs (as places, if applicable)
+          placeStart = startAutocomplete.getPlace();
+          placeEnd = endAutocomplete.getPlace();
+
+          var addressess = [
+            ["start", addressStart, placeStart],
+            ["end", addressEnd, placeEnd]
+          ];
+
+          // Get and Display Walking Directions to/from each station
+          Promise.all(addressess.map(findStationDirections))
+          // Get and Display Biking Directions from station to station
+          .then(function(results) {
+            return getDirections(
+              results[0],
+              results[1],
+              "BICYCLING",
+              "middle"
+            );
+          })
+          .then(function() {
+            displayResults();
+          });
+        });
+      }
+
+      function findStationDirections(input) {
+        /*
+          input[0]: 'start' or 'end' station
+          input[1]: Manually typed address
+          input[2]: Google Place object from Clicking autocomplete suggestion
+        */
+
+        return new Promise(function(resolve, reject) {
+          var addressToUse;
+          
+          // Check whether user clicked a place or manually entered an address.
+          if (input[2] == undefined) {
+            // Address given
+            addressToUse = input[1];
+          } else {
+            // Place given
+            addressToUse = input[2].formatted_address;
+          }
+
+          // Verify Address
+          geoCodeAddress(addressToUse)
+          .then(function(results) {
+          // Add a Marker for address
+            return results[0].formatted_address;
+          })
+          // Find closest B-Cycle station near address
+          .then(function(geo_address) {
+            return findNearestStation(geo_address);
+          })
+          // Find walking directions from address to station
+          .then(function(results) {                
+            resolve(results[1]);
+            if(input[0] === "start") {
+              return getDirections(
+                results[0], // Origin
+                results[1], // Destination
+                results[2], // TravelMode
+                input[0]    // Route Leg
+              );
+            } else {
+              return getDirections(
+                results[1], // Origin
+                results[0], // Destination
+                results[2], // TravelMode
+                input[0]    // Route Leg
+              );                  
+            }
+          })
+          .catch(function(status){
+            console.log(status);
+            reject(status);
+          });   
+        });
+      }
+
+      function findNearestStation(address) {
+        return new Promise(function(resolve, reject) {
+
+          var min_time = 1201; // 20 minute maximum walk time to station
+          var station_address = "";
+          var station_id = 0;
+
+          // Check to make sure the place entered isn't blank.
+          if (address == '') {
+            reject(Error('Must enter an address.'));
+          }
+          else {
+            // Use the distance matrix service to calculate the duration of the
+            // routes between all stations and given address.
+
+            // Put all the origins into an origin matrix.
+            var origins = [];
+            for (var i = 0; i < stations.length; i++) {
+              origins[i] = stations[i].location;
+            }
+            var destination = address;
+            var mode = "WALKING";
+
+            // Get distance info between origins and destination.
+            distanceMatrixService.getDistanceMatrix({
+              origins: origins,
+              destinations: [destination],
+              travelMode: google.maps.TravelMode[mode],
+              unitSystem: google.maps.UnitSystem.IMPERIAL,
+            }, function(response, status) {
+              if (status !== google.maps.DistanceMatrixStatus.OK) {
+                window.alert('Error was: ' + status);
+                reject(Error(status));
+              } else {
+                // Iterate through results to find station with shortest walking duration
+                for (var i = 0; i < origins.length; i++) {
+                  var results = response.rows[i].elements;
+                  for (var j = 0; j < results.length; j++) {
+                    var element = results[j];
+                    if (element.status === "OK") {
+                      if (element.duration.value <= min_time) {
+                        min_time = element.duration.value;
+                        station_address = response.originAddresses[i];
+                        station_id = i;
+                      }
+                    }
+                  }
+                }
+                console.log("Nearest B-Cycle station: \n" + station_address +"\n" + Math.round(min_time / 60) + " minute walk away");
+                // displayMarkersWithinTime(response);
+                markers[station_id].setMap(map);
+                resolve([address, stations[station_id].location, 'WALKING']);
+              }
+            });
+          }
+        });
+      }
+
+      function getDirections(orig, dest, mode, routeLeg) {
+        return new Promise(function(resolve, reject) {
+          // var alternate = false;
+          // if (mode == "BICYCLING") {alternate = true;}
+          directionsService.route({
+            origin: orig,
+            destination: dest,
+            travelMode: google.maps.TravelMode[mode],
+            unitSystem: google.maps.UnitSystem.IMPERIAL,
+            // provideRouteAlternatives: alternate
+          }, function(response, status) {
+            if (status !== google.maps.DirectionsStatus.OK) {
+              console.log(status);
+              reject(Error(status));
+            } else {
+              var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, suppressBicyclingLayer: true});
+              directionsDisplay.setMap(map);
+              directionsDisplay.setDirections(response);
+
+              if (mode == "WALKING") {
+                walkTime += response.routes[0].legs[0].duration.value;
+                walkDistance += response.routes[0].legs[0].distance.value;
+                if (routeLeg == "start") {
+                  directionsDisplay.setPanel(document.getElementById('directionsPanelStart'));
+                  marker = new google.maps.Marker({
+                    map: map,
+                    position: response.routes[0].legs[0].start_location,
+                    title: "Origin",
+                    icon: markerA
+                  });
+                  markers.push(marker);
+                } else {
+                  directionsDisplay.setPanel(document.getElementById('directionsPanelEnd'));
+                  marker = new google.maps.Marker({
+                    map: map,
+                    position: response.routes[0].legs[0].end_location,
+                    title: "Destination",
+                    icon: markerB
+                  });
+                  markers.push(marker);
+                }
+              } else {
+                bikeTime += response.routes[0].legs[0].duration.value;
+                bikeDistance += response.routes[0].legs[0].distance.value;
+                directionsDisplay.setPanel(document.getElementById('directionsPanelMiddle'));
+              }
+              // console.log(response);
+              resolve(response);
+            }
+          });
+        });
+      }
+
+
+      function clearAllMarkers() {
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(null);
+          }
+      }
+      
+      function geoCodeAddress(address) {
+        return new Promise(function(resolve,reject) {
+          // Check if input is a place. Else, assume Address.
+          geocoder.geocode( { 'address': address}, function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+              resolve(results);
+            } else {
+              reject(status);
+            }
+          });
+        });
+      }
+
+      function displayResults() {
+        var totalTimeFormatted, walkDistanceFormatted, bikeDistanceFormatted;
+
+        totalTimeFormatted = (Math.round((walkTime+bikeTime)/60))+" mins";
+
+        if (walkDistance <= 160) {
+          walkDistanceFormatted = Math.round(walkDistance*3.28084)+" ft";
+        } else {
+          walkDistanceFormatted = (Math.round(walkDistance*0.000621371 * 10) / 10)+" mi";
+        }
+
+        if (bikeDistance <= 160) {
+          bikeDistanceFormatted = Math.round(bikeDistance*3.28084)+" ft";
+        } else {
+          bikeDistanceFormatted = (Math.round(bikeDistance*0.000621371 * 10) / 10)+" mi";
+        }
+
+        var resultsList = document.querySelector('results');
+
+        results.innerHTML = "<h4>Time to Destination: "+totalTimeFormatted+"</h4><h4>Biking Distance: "+bikeDistanceFormatted+"</h4><h4>Walking Distance: "+walkDistanceFormatted+"</h4>";
+      };
+
+      function createMarker(element, index, array) {
+        var html = "<b>" + element.name + "</b> <br/>" + element.formatted_address;
+        var marker = new google.maps.Marker({
+          map: map,
+          position: element.geometry.location,
+          animation: google.maps.Animation.DROP,
+          title: element.formatted_address
+        });
+        google.maps.event.addListener(marker, 'click', function() {
+          infoWindow.setContent(html);
+          infoWindow.open(map, marker);
+        });
+        // bounds.extend(element.geometry.location);
+        markers.push(marker);
+      }
+    </script>
+
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyAmNH8x1MOyTmnODOCfcfnFdkJ0-pLg1Ew&v=3&callback=initMap">
+    </script>
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script> -->
+
+  </body>
+</html>
