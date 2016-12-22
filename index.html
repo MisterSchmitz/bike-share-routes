@@ -74,10 +74,10 @@
         // Generate List of Stations        
         $.getJSON(stationInformationUrl, function(data) {          
           $.each(data.data.stations, function(i, station) {
-            // Push the station to our array of stations.
+            // Push the station to our array of stations
             stations.push(station);
 
-            // Create an array of B-Cycle markers from stations.
+            // Create station markers
             var marker = new google.maps.Marker({
               map: map,
               position: new google.maps.LatLng(station.lat, station.lon),
@@ -85,7 +85,7 @@
               icon: markerStation,
               id: i
             });
-            // Push the marker to our array of markers.
+            // Push the marker to our array of markers
             markers.push(marker);
             // Extend the boundaries of the map for each marker
             bounds.extend(marker.position);
@@ -99,7 +99,7 @@
         var endAutocomplete = new google.maps.places.Autocomplete(
           document.getElementById('address-end'));
         
-        // Bias the boundaries within the map for the text.
+        // Bias the boundaries within the map for the text
         startAutocomplete.bindTo('bounds', map);
         endAutocomplete.bindTo('bounds', map);
 
@@ -151,7 +151,7 @@
         return new Promise(function(resolve, reject) {
           var addressToUse;
           
-          // Check whether user clicked a place or manually entered an address.
+          // Check whether user clicked a place or manually entered an address
           if (input[2] == undefined) {    // Address given
             addressToUse = input[1];
           } else {                        // Place given
@@ -210,7 +210,7 @@
       function findNearestStation(address) {
         return new Promise(function(resolve, reject) {
 
-          // Check to make sure the place entered isn't blank.
+          // Check to make sure the place entered isn't blank
           if (address == '') {
             reject(Error('Must enter an address.'));
           }
