@@ -1,6 +1,6 @@
-# bcycle-maps
+# bike-share-routes
 (Dev in progress)
-App showing how to get from point A to B using Boulder Colorado's B-Cycle bike sharing program
+App showing how to get from point A to B using bike share programs, such as Boulder's B-Cycle
 
 ###Features on the backlog:
 Custom DirectionsPanel Markers
