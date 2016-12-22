@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>B-Cycle Route Finder</title>
+    <title>Bike Share Route Finder</title>
     <link href="css/styles.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -33,188 +33,22 @@
       </div>
     </div>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
     <script type="text/javascript">
-      // var json = require('./stations.json');
-
-      // These are the station locations.
-      // These will eventually end up in a JSON object. Current list: https://gbfs.bcycle.com/bcycle_boulder/station_information.json
-      // Note: Google caps distance matrix requests at 25
-      // var stations = [
-      //     {title: "21st & Arapahoe", location: {lat: 40.014528, lng: -105.267262}},
-      //     {title: "13th & Arapahoe", location: {lat: 40.0146, lng: -105.27778}},
-      //     {title: "48th & Arapahoe", location: {lat: 40.0149, lng: -105.23558}},
-      //     {title: "The Village", location: {lat: 40.01491, lng: -105.26061}},
-      //     {title: "6th & Canyon", location: {lat: 40.01506, lng: -105.28729}},
-      //     {title: "38th & Arapahoe", location: {lat: 40.015078, lng: -105.246967}},
-      //     {title: "Municipal Building", location: {lat: 40.01508, lng: -105.27959}},
-      //     {title: "Twenty Ninth Street South", location: {lat: 40.0161, lng: -105.25807}},
-      //     {title: "10th & Walnut", location: {lat: 40.016219, lng: -105.282148}},
-      //     {title: "14th & Canyon", location: {lat: 40.01663, lng: -105.27646}},
-      //     {title: "33rd & Fisher", location: {lat: 40.017395, lng: -105.249893}},
-      //     {title: "11th & Pearl", location: {lat: 40.017535, lng: -105.281234}},
-      //     {title: "15th & Pearl", location: {lat: 40.018721, lng: -105.27584}},
-      //     {title: "Twenty Ninth Street North", location: {lat: 40.018809, lng: -105.255959}},
-      //     {title: "13th & Spruce", location: {lat: 40.01909, lng: -105.278898}},
-      //     {title: "20th & Pearl", location: {lat: 40.019875, lng: -105.269518}},
-      //     {title: "Folsom & Pearl", location: {lat: 40.021441, lng: -105.263643}},
-      //     {title: "26th @ Pearl", location: {lat: 40.0216, lng: -105.25984}},
-      //     {title: "29th & Pearl", location: {lat: 40.022889, lng: -105.256461}},
-      //     {title: "31st & Pearl", location: {lat: 40.02308, lng: -105.25175}},
-      //     {title: "Broadway & Alpine", location: {lat: 40.02543, lng: -105.28144}},
-      //     {title: "28th & Mapleton", location: {lat: 40.0262, lng: -105.25856}},
-      //     {title: "Wilderness Place", location: {lat: 40.027324, lng: -105.247933}},
-      //     {title: "UCAR Center Green", location: {lat: 40.03154, lng: -105.24611}}
-      //   ];
-
-      var stations = [
-          // Boulder Stations
-          {title: "Folsom & Colorado", location: {lat: 40.00811, lng: -105.26385}},
-          {title: "15th & Pearl", location: {lat: 40.01872, lng: -105.27584}},
-          {title: "11th & Pearl", location: {lat: 40.01747, lng: -105.28116}},
-          {title: "13th & Spruce", location: {lat: 40.01909, lng: -105.2789}},
-          {title: "UCAR Center Green", location: {lat: 40.03154, lng: -105.24611}},
-          {title: "Library @ Arapahoe", location: {lat: 40.01377, lng: -105.28087}},
-          {title: "26th @ Pearl", location: {lat: 40.0216, lng: -105.25984}},
-          {title: "Municipal Building", location: {lat: 40.01508, lng: -105.27959}},
-          {title: "UCAR Mitchell Lane", location: {lat: 40.03643, lng: -105.24226}},
-          {title: "Broadway & Alpine", location: {lat: 40.02543, lng: -105.28144}},
-          {title: "19th @ Boulder Creek", location: {lat: 40.01177, lng: -105.27006}},
-          {title: "Twenty Ninth Street South", location: {lat: 40.0161, lng: -105.25807}},
-          {title: "The Village", location: {lat: 40.01491, lng: -105.26061}},
-          {title: "6th & Canyon", location: {lat: 40.01506, lng: -105.28729}},
-          {title: "14th & Canyon", location: {lat: 40.01663, lng: -105.27646}},
-          {title: "30th & Diagonal Highway", location: {lat: 40.03751, lng: -105.25351}},
-          {title: "North Boulder Recreation Center", location: {lat: 40.03206, lng: -105.28038}},
-          {title: "Broadway & Euclid", location: {lat: 40.00638, lng: -105.2724}},
-          {title: "Broadway & University", location: {lat: 40.01062, lng: -105.27669}},
-          {title: "Broadway & Iris", location: {lat: 40.03652, lng: -105.28128}},
-          {title: "9th & Pearl", location: {lat: 40.01688, lng: -105.28396}},
-          {title: "Twenty Ninth Street North", location: {lat: 40.01881, lng: -105.25596}},
-          {title: "Broadway & Baseline", location: {lat: 40.0001, lng: -105.2625}},
-          {title: "29th & Pearl", location: {lat: 40.02288, lng: -105.25647}},
-          {title: "21st & Arapahoe", location: {lat: 40.01453, lng: -105.26732}},
-          {title: "13th & College", location: {lat: 40.00739, lng: -105.27668}},
-          {title: "38th & Arapahoe", location: {lat: 40.01508, lng: -105.24697}},
-          {title: "30th & Glenwood", location: {lat: 40.03387, lng: -105.25393}},
-          {title: "20th & Pearl", location: {lat: 40.01988, lng: -105.26952}},
-          {title: "Folsom & Pearl", location: {lat: 40.02144, lng: -105.26364}},
-          {title: "28th & Boulder Creek", location: {lat: 40.01067, lng: -105.25894}},
-          {title: "13th & Arapahoe", location: {lat: 40.0146, lng: -105.27778}},
-          {title: "27th Way & Broadway", location: {lat: 39.99573, lng: -105.26081}},
-          {title: "48th & Arapahoe", location: {lat: 40.0149, lng: -105.23558}},
-          {title: "31st & Pearl", location: {lat: 40.02308, lng: -105.25175}},
-          {title: "Settlers' Park", location: {lat: 40.01436, lng: -105.29497}},
-          {title: "Williams Village", location: {lat: 39.99915, lng: -105.25264}},
-          {title: "35th & Colorado", location: {lat: 40.00767, lng: -105.24793}},
-          {title: "Gunbarrel North", location: {lat: 40.07488, lng: -105.20226}},
-          {title: "28th & Mapleton", location: {lat: 40.0262, lng: -105.25856}},
-          {title: "30th & Marine", location: {lat: 40.01356, lng: -105.25354}}
-          // Denver Stations
-          // {title: "3rd & Milwaukee", location: {lat: 39.72055, lng: -104.95253}},
-          // {title: "9th & Downing", location: {lat: 39.73078, lng: -104.97279}},
-          // {title: "11th & Broadway", location: {lat: 39.73395, lng: -104.98772}},
-          // {title: "13th & Pearl", location: {lat: 39.73683, lng: -104.98}},
-          // {title: "15th & Cleveland", location: {lat: 39.74064, lng: -104.98863}},
-          // {title: "16th & Boulder", location: {lat: 39.75934, lng: -105.01042}},
-          // {title: "16th & Broadway", location: {lat: 39.74184, lng: -104.98686}},
-          // {title: "16th & Little Raven", location: {lat: 39.75524, lng: -105.00488}},
-          // {title: "16th & Platte", location: {lat: 39.75723, lng: -105.00781}},
-          // {title: "17th & Curtis", location: {lat: 39.74767, lng: -104.99339}},
-          // {title: "17th & Larimer", location: {lat: 39.74984, lng: -104.99604}},
-          // {title: "19th & Market", location: {lat: 39.75262, lng: -104.99485}},
-          // {title: "19th & Pearl", location: {lat: 39.7461, lng: -104.97954}},
-          // {title: "19th & Wynkoop", location: {lat: 39.75489, lng: -104.99694}},
-          // {title: "22nd & Market", location: {lat: 39.75559, lng: -104.99078}},
-          // {title: "28th & Larimer", location: {lat: 39.76042, lng: -104.98308}},
-          // {title: "Broadway & Walnut", location: {lat: 39.75822, lng: -104.98736}},
-          // {title: "Cherry Creek Mall", location: {lat: 39.71504, lng: -104.95218}},
-          // {title: "Denver Health", location: {lat: 39.72766, lng: -104.99212}},
-          // {title: "Ellsworth & Madison", location: {lat: 39.71591, lng: -104.94633}},
-          // {title: "Market Street Station", location: {lat: 39.75011, lng: -104.99824}},
-          // {title: "Pepsi Center", location: {lat: 39.74769, lng: -105.00843}},
-          // {title: "REI", location: {lat: 39.75518, lng: -105.00865}},
-          // {title: "Webb Building", location: {lat: 39.74044, lng: -104.99019}},
-          // {title: "1550 Glenarm", location: {lat: 39.74329, lng: -104.99107}},
-          // {title: "14th & Welton", location: {lat: 39.74267, lng: -104.99391}},
-          // {title: "Five Points", location: {lat: 39.75514, lng: -104.97829}},
-          // {title: "Park Ave West & Tremont ", location: {lat: 39.74956, lng: -104.98073}},
-          // {title: "15th & Delgany", location: {lat: 39.75268, lng: -105.00349}},
-          // {title: "Denver Botanic Gardens", location: {lat: 39.73258, lng: -104.95989}},
-          // {title: "Denver Public Library ", location: {lat: 39.73713, lng: -104.9887}},
-          // {title: "1350 Larimer", location: {lat: 39.74684, lng: -105.00029}},
-          // {title: "7th & Grant", location: {lat: 39.72778, lng: -104.98373}},
-          // {title: "12th & Sherman", location: {lat: 39.7358, lng: -104.98469}},
-          // {title: "4th & Walnut", location: {lat: 39.74283, lng: -105.01235}},
-          // {title: "1450 Wazee", location: {lat: 39.74997, lng: -105.00165}},
-          // {title: "2045 Franklin", location: {lat: 39.74729, lng: -104.96851}},
-          // {title: "18th & California", location: {lat: 39.747, lng: -104.99003}},
-          // {title: "16th & Sherman", location: {lat: 39.74191, lng: -104.98495}},
-          // {title: "14th & Elati", location: {lat: 39.73862, lng: -104.99395}},
-          // {title: "11th & Emerson", location: {lat: 39.73361, lng: -104.97629}},
-          // {title: "10th & Osage", location: {lat: 39.73231, lng: -105.00535}},
-          // {title: "22nd & Pennsylvania", location: {lat: 39.74763, lng: -104.98107}},
-          // {title: "Louisiana & Franklin", location: {lat: 39.69284, lng: -104.96857}},
-          // {title: "17th & Blake", location: {lat: 39.75176, lng: -104.99814}},
-          // {title: "9th & Santa Fe", location: {lat: 39.73058, lng: -104.9991}},
-          // {title: "9th & Curtis", location: {lat: 39.74233, lng: -105.00453}},
-          // {title: "Denver Museum of Nature & Science", location: {lat: 39.74812, lng: -104.94379}},
-          // {title: "Denver Zoo", location: {lat: 39.75054, lng: -104.94933}},
-          // {title: "14th & Stout", location: {lat: 39.74408, lng: -104.99567}},
-          // {title: "1st & Broadway", location: {lat: 39.71825, lng: -104.98774}},
-          // {title: "Bayaud & Pennsylvania", location: {lat: 39.71481, lng: -104.9812}},
-          // {title: "6th & Clarkson", location: {lat: 39.72569, lng: -104.97789}},
-          // {title: "14th & Ogden", location: {lat: 39.73849, lng: -104.97514}},
-          // {title: "15th & Curtis", location: {lat: 39.74641, lng: -104.99592}},
-          // {title: "20th & Chestnut", location: {lat: 39.75829, lng: -104.99819}},
-          // {title: "32nd & Clay", location: {lat: 39.76192, lng: -105.02062}},
-          // {title: "32nd & Julian", location: {lat: 39.76201, lng: -105.03236}},
-          // {title: "Colfax & Gaylord", location: {lat: 39.73983, lng: -104.96096}},
-          // {title: "Colfax & Steele", location: {lat: 39.74055, lng: -104.95019}},
-          // {title: "1551 Lafayette", location: {lat: 39.74078, lng: -104.97101}},
-          // {title: "17th & Downing", location: {lat: 39.74307, lng: -104.97333}},
-          // {title: "12th & Columbine", location: {lat: 39.73508, lng: -104.95728}},
-          // {title: "13th & Marion", location: {lat: 39.73662, lng: -104.97191}},
-          // {title: "13th & Speer", location: {lat: 39.73708, lng: -104.99674}},
-          // {title: "17th & Pearl", location: {lat: 39.74336, lng: -104.98007}},
-          // {title: "17th & Race", location: {lat: 39.74339, lng: -104.9634}},
-          // {title: "17th & Tejon", location: {lat: 39.76158, lng: -105.01098}},
-          // {title: "18th & Arapahoe", location: {lat: 39.74977, lng: -104.9931}},
-          // {title: "23rd & Clay", location: {lat: 39.75137, lng: -105.0206}},
-          // {title: "9th & Logan", location: {lat: 39.73027, lng: -104.98248}},
-          // {title: "Bayaud & Emerson", location: {lat: 39.71467, lng: -104.97678}},
-          // {title: "Colfax & Columbine", location: {lat: 39.74032, lng: -104.95812}},
-          // {title: "33rd & Arapahoe", location: {lat: 39.76354, lng: -104.97473}},
-          // {title: "Colfax & Garfield", location: {lat: 39.74052, lng: -104.94429}},
-          // {title: "17th & Franklin", location: {lat: 39.74304, lng: -104.96855}},
-          // {title: "11th & Delaware", location: {lat: 39.73372, lng: -104.99302}},
-          // {title: "29th & Zuni", location: {lat: 39.7585, lng: -105.01662}},
-          // {title: "32nd & Pecos", location: {lat: 39.76204, lng: -105.0061}},
-          // {title: "Decatur Federal Light Rail", location: {lat: 39.73811, lng: -105.02232}},
-          // {title: "39th & Fox", location: {lat: 39.7712, lng: -104.99497}},
-          // {title: "11th & Ogden", location: {lat: 39.73361, lng: -104.97554}},
-          // {title: "17th & Wewatta", location: {lat: 39.75387, lng: -105.00105}},
-          // {title: "30th & Lawrence", location: {lat: 39.76185, lng: -104.97928}},
-          // {title: "16th & Chestnut", location: {lat: 39.75436, lng: -105.00373}},
-          // {title: "21st & Lawrence", location: {lat: 39.75324, lng: -104.99073}},
-          // {title: "16th & Wynkoop", location: {lat: 39.75225, lng: -105.0006}},
-          // {title: "21st & Market", location: {lat: 39.75425, lng: -104.99206}}
-      ];
-
-      // TODO: Implement station status: https://gbfs.bcycle.com/bcycle_boulder/station_status.json
-      
-      var markerStation = 'img/markerStation.png';
-      var markerA = 'img/markerA.png';
-      var markerB = 'img/markerB.png';
-
       // Application variables
       var addressStart, addressEnd, placeStart, placeEnd;
       var walkTime=0, bikeTime=0, walkDistance=0, bikeDistance=0;
+      var stations = [];
+      var markers = [];
 
-      // Google Maps API variables
-      var map,geocoder,markers,bounds,infoWindow;
+      // Images
+      var markerA = 'img/markerA.png';
+      var markerB = 'img/markerB.png';
 
       // Google Maps API Callback Function
       function initMap() {
+
         map = new google.maps.Map(document.getElementById('map'), {
           // center: {lat: 40.014984, lng: -105.270546},  // Boulder, CO
           // zoom: 14
@@ -226,8 +60,39 @@
         distanceMatrixService = new google.maps.DistanceMatrixService;
         directionsService = new google.maps.DirectionsService();
 
-        markers = [];
+        var bounds = new google.maps.LatLngBounds();
+
+        // Choose Station List
+        var markerStation = 'img/bcycle.png';
+        var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_boulder/station_information.json";  //Boulder
+        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_denver/station_information.json";   //Denver
+        // var markerStation = 'img/divvy.png';
+        // var stationInformationUrl = "https://gbfs.divvybikes.com/gbfs/en/station_information.json" //Chicago
+
+        // TODO: Implement station status: https://gbfs.bcycle.com/bcycle_boulder/station_status.json
         
+        // Generate List of Stations        
+        $.getJSON(stationInformationUrl, function(data) {          
+          $.each(data.data.stations, function(i, station) {
+            // Push the station to our array of stations.
+            stations.push(station);
+
+            // Create an array of B-Cycle markers from stations.
+            var marker = new google.maps.Marker({
+              map: map,
+              position: new google.maps.LatLng(station.lat, station.lon),
+              title: station.name,
+              icon: markerStation,
+              id: i
+            });
+            // Push the marker to our array of markers.
+            markers.push(marker);
+            // Extend the boundaries of the map for each marker
+            bounds.extend(marker.position);
+          });
+          map.fitBounds(bounds);
+        });
+
         // Places autocomplete
         var startAutocomplete = new google.maps.places.Autocomplete(
           document.getElementById('address-start'));    
@@ -237,28 +102,6 @@
         // Bias the boundaries within the map for the text.
         startAutocomplete.bindTo('bounds', map);
         endAutocomplete.bindTo('bounds', map);
-        
-
-        var bounds = new google.maps.LatLngBounds();
-
-        // Create an array of B-Cycle markers
-        for (var i = 0; i < stations.length; i++) {
-
-          // Create a marker per location, and put into markers array.
-          var marker = new google.maps.Marker({
-            map: map,
-            position: stations[i].location,
-            title: stations[i].title,
-            icon: markerStation,
-            id: i
-          });
-          // Push the marker to our array of markers.
-          markers.push(marker);
-          // Extend the boundaries of the map for each marker
-          bounds.extend(marker.position);
-        }
-
-        map.fitBounds(bounds);
 
         // User initiates search:
         document.getElementById('search').addEventListener('click', function() {
@@ -282,7 +125,7 @@
           ];
 
           // Get and Display Walking Directions to/from each station
-          Promise.all(addresses.map(findStationDirections))
+          Promise.all(addresses.map(findRoute))
           // Get and Display Biking Directions from station to station
           .then(function(results) {
             return getDirections(
@@ -298,7 +141,7 @@
         });
       }
 
-      function findStationDirections(input) {
+      function findRoute(input) {
         /*
           input[0]: 'start' or 'end' station
           input[1]: Manually typed address
@@ -348,6 +191,15 @@
               );                  
             }
           })
+          .then(function(results) {
+            var bounds = new google.maps.LatLngBounds();
+            for (var i = 0; i < markers.length; i++) {
+              if (markers[i].map != null) {
+                bounds.extend(markers[i].position);
+              }
+            }
+            map.fitBounds(bounds);
+          })
           .catch(function(status){
             console.log(status);
             reject(status);
@@ -358,18 +210,11 @@
       function findNearestStation(address) {
         return new Promise(function(resolve, reject) {
 
-          var min_time = 1201; // 20 minute maximum walk time to station
-          var station_address = "";
-          var station_id = 0;
-
           // Check to make sure the place entered isn't blank.
           if (address == '') {
             reject(Error('Must enter an address.'));
           }
           else {
-            // Use the distance matrix service to calculate the duration of the
-            // routes between all stations and given address.
-
             // Find the closest station, using pyth distance
             // Get LatLng coordinates for current address
             var addLat = parseFloat(address.geometry.location.lat());
@@ -381,58 +226,16 @@
             var index = 0;
 
             for (var i = 0; i < stations.length; i++) {
-              curr = Math.sqrt(Math.pow(addLat - parseFloat(stations[i].location.lat),2)+Math.pow(addLng - parseFloat(stations[i].location.lng),2));
+              curr = Math.sqrt(Math.pow(addLat - parseFloat(stations[i].lat),2)+Math.pow(addLng - parseFloat(stations[i].lon),2));
               if (curr < min) {
                 min = curr;
                 index = i;
               }
             }
-
-            // OLD METHOD
-            // var origins = [];
-            // for (var i = 0; i < stations.length(); i++) {
-            //   origins[i] = stations[i].location;
-            // }
-            // var destination = address.formatted_address;
-            // var mode = "WALKING";
-
-            // Get distance info between origins and destination.
-            // distanceMatrixService.getDistanceMatrix({
-            //   origins: origins,
-            //   destinations: [destination],
-            //   travelMode: google.maps.TravelMode[mode],
-            //   unitSystem: google.maps.UnitSystem.IMPERIAL,
-            // }, function(response, status) {
-            //   if (status !== google.maps.DistanceMatrixStatus.OK) {
-            //     window.alert('Error was: ' + status);
-            //     reject(Error(status));
-            //   } else {
-            //     // Iterate through results to find station with shortest walking duration
-            //     // for (var i = 0; i < origins.length; i++) {
-            //     //   var results = response.rows[i].elements;
-            //     //   for (var j = 0; j < results.length; j++) {
-            //     //     var element = results[j];
-            //     //     if (element.status === "OK") {
-            //     //       if (element.duration.value <= min_time) {
-            //     //         min_time = element.duration.value;
-            //     //         station_address = response.originAddresses[i];
-            //     //         station_id = i;
-            //     //       }
-            //     //     }
-            //     //   }
-            //     // }
-            //     console.log("Nearest B-Cycle station: \n" + stations[station_id].title +"\n" + Math.round(min_time / 60) + " minute walk away");
-            //     // displayMarkersWithinTime(response);
-            //     markers[station_id].setMap(map);
-            //     resolve([address.formatted_address, stations[station_id].location, 'WALKING']);
-            //   }
-            // });
-
-          // NEW METHOD
           }
-          console.log("Nearest B-Cycle station: \n" + stations[index].title);
+          console.log("Nearest B-Cycle station: \n" + stations[index].name);
           markers[index].setMap(map);
-          resolve([address.formatted_address, stations[index].location, 'WALKING']);
+          resolve([address.formatted_address, markers[index].position, 'WALKING']);
         });
       }
 
@@ -562,7 +365,6 @@
     <script async defer
         src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyAmNH8x1MOyTmnODOCfcfnFdkJ0-pLg1Ew&v=3&callback=initMap">
     </script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script> -->
 
   </body>
 </html>
