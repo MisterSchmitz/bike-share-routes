@@ -64,8 +64,16 @@
 
         // Choose Station List
         var markerStation = 'img/bcycle.png';
-        var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_boulder/station_information.json";  //Boulder
-        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_denver/station_information.json";   //Denver
+        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_arborbike/station_information.json" // Ann Arbor
+        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_austin/station_information.json" // Austin
+        var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_boulder/station_information.json";  // Boulder
+        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_denver/station_information.json";   // Denver
+        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_lametro/station_information.json"; // Los Angeles
+        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_madison/station_information.json"; // Madison
+        // var stationInformationUrl = "https://gbfs.citibikenyc.com/gbfs/en/station_information.json"; // New York City
+        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_indego/station_information.json" // Philadelphia
+        // var stationInformationUrl = "https://gbfs.bayareabikeshare.com/gbfs/en/station_information.json" // San Francisco
+        // var stationInformationUrl = "http://santamonicabikeshare.com/opendata/station_information.json" // Santa Monica
         // var markerStation = 'img/divvy.png';
         // var stationInformationUrl = "https://gbfs.divvybikes.com/gbfs/en/station_information.json" //Chicago
 
@@ -103,13 +111,14 @@
         startAutocomplete.bindTo('bounds', map);
         endAutocomplete.bindTo('bounds', map);
 
+/////////////////////////////////////////////////////
         // User initiates search:
+/////////////////////////////////////////////////////        
         document.getElementById('search').addEventListener('click', function() {
 
           clearAllMarkers();
-
-          document.getElementById("map").style.width = "70%";
-          document.getElementById("directionsPanel").style.left = "0px";
+          // document.getElementById("map").style.width = "70%";
+          // document.getElementById("directionsPanel").style.left = "0px";
 
           // User inputs
           addressStart = document.getElementById('address-start').value;
@@ -119,175 +128,80 @@
           placeStart = startAutocomplete.getPlace();
           placeEnd = endAutocomplete.getPlace();
 
-          var addresses = [
-            ["start", addressStart, placeStart],
-            ["end", addressEnd, placeEnd]
-          ];
+          // If user clicked a place, set place address as the address
+          if (placeStart != undefined) {    // Place given
+            addressStart = placeStart.formatted_address;
+          };
 
-          // Get and Display Walking Directions to/from each station
-          Promise.all(addresses.map(findRoute))
-          // Get and Display Biking Directions from station to station
+          if (placeEnd != undefined) {    // Place given
+            addressEnd = placeEnd.formatted_address;
+          };
+
+          var addresses = [[addressStart],[addressEnd]];
+          var geoAddresses = [];
+
+
+          // Begin Promise chain
+
+          // Geocode addresses
+          Promise.all([
+              geoCodeAddress(addressStart),
+              geoCodeAddress(addressEnd)
+            ])
+          // Set Geocoded addresses and find bike station nearest to each address
           .then(function(results) {
-            return getDirections(
-              results[0],
-              results[1],
-              "BICYCLING",
-              "middle"
-            );
+            geoAddresses.push(results[0][0]);
+            geoAddresses.push(results[1][0]);
+
+            return new Promise(function(resolve, reject) {
+              addresses[0].push(findNearestStation(results[0][0]));
+              addresses[1].push(findNearestStation(results[1][0]));
+              resolve();
+            });
           })
-          .then(function() {
+          // Get directions
+          .then(function(results) {
+            return Promise.all([
+                getDirections(addresses[0][0], addresses[0][1], "WALKING"),   // start
+                getDirections(addresses[1][0], addresses[1][1], "WALKING"),   // end
+                getDirections(addresses[0][1], addresses[1][1], "BICYCLING")  // middle
+              ])
+          })
+          // Sum up direction distance and duration
+          .then(function(results) {
+              walkDistance = results[0].routes[0].legs[0].distance.value + results[1].routes[0].legs[0].distance.value;
+              walkTime = results[0].routes[0].legs[0].duration.value + results[1].routes[0].legs[0].duration.value;
+              bikeDistance = results[2].routes[0].legs[0].distance.value;
+              bikeTime = results[2].routes[0].legs[0].duration.value;
+              return results;
+          })
+          // Add directions to map and directions panel
+          .then(function(results) {
+            return Promise.all([
+                displayDirections(results[0], "directionsPanelStart"),
+                displayDirections(results[1], "directionsPanelEnd"),
+                displayDirections(results[2], "directionsPanelMiddle")
+              ])
+          })
+          // Add start and end markers to map
+          .then(function(results) {
+            console.log(geoAddresses);
+            return Promise.all([
+                createMarker(map, geoAddresses[0].geometry.location, "Origin", markerA),
+                createMarker(map, geoAddresses[1].geometry.location, "Destination", markerB)
+              ])
+          })
+          // Reset map's bounds based on active markers
+          .then(function(results) {
+            fitMapToBounds(map, markers);
+          })
+          // Display results panel (total distance and duration)
+          .then(function(results) {
             displayResults();
-          });
-        });
-      }
-
-      function findRoute(input) {
-        /*
-          input[0]: 'start' or 'end' station
-          input[1]: Manually typed address
-          input[2]: Google Place object from Clicking autocomplete suggestion
-        */
-
-        return new Promise(function(resolve, reject) {
-          var addressToUse;
-          
-          // Check whether user clicked a place or manually entered an address
-          if (input[2] == undefined) {    // Address given
-            addressToUse = input[1];
-          } else {                        // Place given
-            addressToUse = input[2].formatted_address;
-          }
-
-          // Verify Address
-          geoCodeAddress(addressToUse)
-          .then(function(results) {
-
-          // Add a Marker for address
-            console.log("geocoded address: \n"+results[0]);
-            return results[0];
-          })
-
-          // Find closest B-Cycle station near address
-          .then(function(geo_address) {
-            return findNearestStation(geo_address);
-          })
-
-          // Find walking directions from address to station
-          .then(function(results) {                
-            resolve(results[1]);
-            if(input[0] === "start") {
-              return getDirections(
-                results[0], // Origin
-                results[1], // Destination
-                results[2], // TravelMode
-                input[0]    // Route Leg
-              );
-            } else {
-              return getDirections(
-                results[1], // Origin
-                results[0], // Destination
-                results[2], // TravelMode
-                input[0]    // Route Leg
-              );                  
-            }
-          })
-          .then(function(results) {
-            var bounds = new google.maps.LatLngBounds();
-            for (var i = 0; i < markers.length; i++) {
-              if (markers[i].map != null) {
-                bounds.extend(markers[i].position);
-              }
-            }
-            map.fitBounds(bounds);
           })
           .catch(function(status){
             console.log(status);
-            reject(status);
-          });   
-        });
-      }
-
-      function findNearestStation(address) {
-        return new Promise(function(resolve, reject) {
-
-          // Check to make sure the place entered isn't blank
-          if (address == '') {
-            reject(Error('Must enter an address.'));
-          }
-          else {
-            // Find the closest station, using pyth distance
-            // Get LatLng coordinates for current address
-            var addLat = parseFloat(address.geometry.location.lat());
-            var addLng = parseFloat(address.geometry.location.lng());
-
-            // find the pyth distance of each station to current address, and return index of min distance
-            var pythDistances = [];
-            var min = 1;
-            var index = 0;
-
-            for (var i = 0; i < stations.length; i++) {
-              curr = Math.sqrt(Math.pow(addLat - parseFloat(stations[i].lat),2)+Math.pow(addLng - parseFloat(stations[i].lon),2));
-              if (curr < min) {
-                min = curr;
-                index = i;
-              }
-            }
-          }
-          console.log("Nearest B-Cycle station: \n" + stations[index].name);
-          markers[index].setMap(map);
-          resolve([address.formatted_address, markers[index].position, 'WALKING']);
-        });
-      }
-
-      function getDirections(orig, dest, mode, routeLeg) {
-        return new Promise(function(resolve, reject) {
-          // var alternate = false;
-          // if (mode == "BICYCLING") {alternate = true;}
-          directionsService.route({
-            origin: orig,
-            destination: dest,
-            travelMode: google.maps.TravelMode[mode],
-            unitSystem: google.maps.UnitSystem.IMPERIAL,
-            // provideRouteAlternatives: alternate
-          }, function(response, status) {
-            if (status !== google.maps.DirectionsStatus.OK) {
-              console.log(status);
-              reject(Error(status));
-            } else {
-              var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, suppressBicyclingLayer: true});
-              directionsDisplay.setMap(map);
-              directionsDisplay.setDirections(response);
-
-              if (mode == "WALKING") {
-                walkTime += response.routes[0].legs[0].duration.value;
-                walkDistance += response.routes[0].legs[0].distance.value;
-                if (routeLeg == "start") {
-                  directionsDisplay.setPanel(document.getElementById('directionsPanelStart'));
-                  marker = new google.maps.Marker({
-                    map: map,
-                    position: response.routes[0].legs[0].start_location,
-                    title: "Origin",
-                    icon: markerA
-                  });
-                  markers.push(marker);
-                } else {
-                  directionsDisplay.setPanel(document.getElementById('directionsPanelEnd'));
-                  marker = new google.maps.Marker({
-                    map: map,
-                    position: response.routes[0].legs[0].end_location,
-                    title: "Destination",
-                    icon: markerB
-                  });
-                  markers.push(marker);
-                }
-              } else {
-                bikeTime += response.routes[0].legs[0].duration.value;
-                bikeDistance += response.routes[0].legs[0].distance.value;
-                directionsDisplay.setPanel(document.getElementById('directionsPanelMiddle'));
-              }
-              // console.log(response);
-              resolve(response);
-            }
+            Error(status);
           });
         });
       }
@@ -298,20 +212,108 @@
             markers[i].setMap(null);
           }
       }
-      
+
+
       function geoCodeAddress(address) {
         return new Promise(function(resolve,reject) {
           // Check if input is a place. Else, assume Address.
-          geocoder.geocode( { 'address': address}, function(results, status) {
-            if (status == google.maps.GeocoderStatus.OK) {
-              console.log(results);
-              resolve(results);
-            } else {
+          geocoder.geocode( {'address': address}, function(results, status) {
+            if (status !== google.maps.GeocoderStatus.OK) {
+              console.log(status)
               reject(status);
+            } else {
+              // console.log("Geocoded results:");
+              // console.log(results);
+              resolve(results);
             }
           });
         });
       }
+
+
+      function findNearestStation(address) {
+          // console.log(address);
+          // Find the closest station, using pyth distance
+          // Get LatLng coordinates for current address
+          var addLat = parseFloat(address.geometry.location.lat());
+          var addLng = parseFloat(address.geometry.location.lng());
+
+          // find the pyth distance of each station to current address, and return index of min distance
+          var pythDistances = [];
+          var min = 1;
+          var index = 0;
+
+          for (var i = 0; i < stations.length; i++) {
+            curr = Math.sqrt(Math.pow(addLat - parseFloat(stations[i].lat),2)+Math.pow(addLng - parseFloat(stations[i].lon),2));
+            if (curr < min) {
+              min = curr;
+              index = i;
+            }
+          }
+          // console.log("Nearest B-Cycle station: \n" + stations[index].name);
+          markers[index].setMap(map);
+          // console.log(markers[index].position);
+          return markers[index].position;
+      }
+
+
+      function getDirections(orig, dest, mode) {
+        return new Promise(function(resolve, reject) {
+          directionsService.route({
+              origin: orig,
+              destination: dest,
+              travelMode: google.maps.TravelMode[mode],
+              unitSystem: google.maps.UnitSystem.IMPERIAL,
+            }, function(response, status) {
+              if (status !== google.maps.DirectionsStatus.OK) {
+                console.log(status);
+                reject(Error(status));
+              } else {
+                console.log("directionsService:");
+                console.log(response);
+                resolve(response);
+              }
+            });
+        });
+      }
+
+
+      function displayDirections(directions, panel) {
+        return new Promise(function(resolve, reject) {
+          var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, suppressBicyclingLayer: true});
+          directionsDisplay.setDirections(directions);
+          directionsDisplay.setMap(map);
+          directionsDisplay.setPanel(document.getElementById(panel));
+          resolve();
+        });
+      }
+
+      // Create a new marker
+      function createMarker(map, position, title, icon) {
+        return new Promise(function(resolve, reject) {
+          marker = new google.maps.Marker({
+            map: map,
+            position: position,
+            title: title,
+            icon: icon
+          });
+          markers.push(marker);
+          resolve();
+        });
+      }
+
+ // Extend a map's bounds based on active markers, and fit map to bounds
+      function fitMapToBounds(map, markers) {
+        var bounds = new google.maps.LatLngBounds();
+        for (var i = 0; i < markers.length; i++) {
+          if (markers[i].map != null) {
+            console.log(markers[i].position);
+            bounds.extend(markers[i].position);
+          }
+        }
+        map.fitBounds(bounds);
+      }
+
 
       function displayResults() {
         // return new Promise(function(resolve,reject) {
@@ -345,21 +347,21 @@
         // });
       };
 
-      function createMarker(element, index, array) {
-        var html = "<b>" + element.name + "</b> <br/>" + element.formatted_address;
-        var marker = new google.maps.Marker({
-          map: map,
-          position: element.geometry.location,
-          animation: google.maps.Animation.DROP,
-          title: element.formatted_address
-        });
-        google.maps.event.addListener(marker, 'click', function() {
-          infoWindow.setContent(html);
-          infoWindow.open(map, marker);
-        });
-        // bounds.extend(element.geometry.location);
-        markers.push(marker);
-      }
+      // function createMarker(element, index, array) {
+      //   var html = "<b>" + element.name + "</b> <br/>" + element.formatted_address;
+      //   var marker = new google.maps.Marker({
+      //     map: map,
+      //     position: element.geometry.location,
+      //     animation: google.maps.Animation.DROP,
+      //     title: element.formatted_address
+      //   });
+      //   google.maps.event.addListener(marker, 'click', function() {
+      //     infoWindow.setContent(html);
+      //     infoWindow.open(map, marker);
+      //   });
+      //   // bounds.extend(element.geometry.location);
+      //   markers.push(marker);
+      // }
     </script>
 
     <script async defer

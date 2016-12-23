@@ -25,16 +25,17 @@
 #map {
   height: 725px;
   float:right;
-  width:100%;
+  width:70%;
   // height:100%
 }
 
 #directionsPanel {
-  height: 600px;
+  height: 725px;
   position: absolute;
   width:30%;
   overflow: auto;
-  left:-30%;
+  left: 0px;
+  // left:-30%;
   // height 100%
 }
 
