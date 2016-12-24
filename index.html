@@ -39,8 +39,14 @@
       // Application variables
       var addressStart, addressEnd, placeStart, placeEnd;
       var walkTime=0, bikeTime=0, walkDistance=0, bikeDistance=0;
-      var stations = [];
-      var markers = [];
+      var stations=[];
+      var markers=[];
+
+      function resetSearch() {
+        addressStart=null, addressEnd=null, placeStart=null, placeEnd=null
+        walkTime=0, bikeTime=0, walkDistance=0, bikeDistance=0;
+        markers = [];
+      }
 
       // Images
       var markerA = 'img/markerA.png';
@@ -63,10 +69,13 @@
         var bounds = new google.maps.LatLngBounds();
 
         // Choose Station List
-        var markerStation = 'img/bcycle.png';
+        // var markerStation = 'img/bcycle.png';
+        var markerStation = 'img/divvy.png';
+
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_arborbike/station_information.json" // Ann Arbor
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_austin/station_information.json" // Austin
-        var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_boulder/station_information.json";  // Boulder
+        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_boulder/station_information.json";  // Boulder
+        var stationInformationUrl = "https://gbfs.divvybikes.com/gbfs/en/station_information.json" //Chicago
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_denver/station_information.json";   // Denver
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_lametro/station_information.json"; // Los Angeles
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_madison/station_information.json"; // Madison
@@ -74,8 +83,6 @@
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_indego/station_information.json" // Philadelphia
         // var stationInformationUrl = "https://gbfs.bayareabikeshare.com/gbfs/en/station_information.json" // San Francisco
         // var stationInformationUrl = "http://santamonicabikeshare.com/opendata/station_information.json" // Santa Monica
-        // var markerStation = 'img/divvy.png';
-        // var stationInformationUrl = "https://gbfs.divvybikes.com/gbfs/en/station_information.json" //Chicago
 
         // TODO: Implement station status: https://gbfs.bcycle.com/bcycle_boulder/station_status.json
         
@@ -115,6 +122,7 @@
         // User initiates search:
 /////////////////////////////////////////////////////        
         document.getElementById('search').addEventListener('click', function() {
+          // console.time("Total Time to complete request");
 
           clearAllMarkers();
           // document.getElementById("map").style.width = "70%";
@@ -128,47 +136,56 @@
           placeStart = startAutocomplete.getPlace();
           placeEnd = endAutocomplete.getPlace();
 
-          // If user clicked a place, set place address as the address
-          if (placeStart != undefined) {    // Place given
-            addressStart = placeStart.formatted_address;
-          };
+          // console.log(placeStart);
+          // console.log(placeEnd);
 
-          if (placeEnd != undefined) {    // Place given
-            addressEnd = placeEnd.formatted_address;
-          };
+          var geoLocations = [];
+          var stationLocations = [];
 
-          var addresses = [[addressStart],[addressEnd]];
-          var geoAddresses = [];
+          $('#map').addClass('loading-mask');
 
-
-          // Begin Promise chain
-
-          // Geocode addresses
+          // Verify addresses and begin 
+          // console.time("sub: Verify Addresses");
           Promise.all([
-              geoCodeAddress(addressStart),
-              geoCodeAddress(addressEnd)
+            verifyAddress(addressStart, placeStart, bounds),
+            verifyAddress(addressEnd, placeEnd, bounds)
             ])
           // Set Geocoded addresses and find bike station nearest to each address
           .then(function(results) {
-            geoAddresses.push(results[0][0]);
-            geoAddresses.push(results[1][0]);
-
+            // console.timeEnd("sub: Verify Addresses");
+            geoLocations.push(results[0].geometry.location);
+            geoLocations.push(results[1].geometry.location);
+            // console.log("geoLocations:");
+            // console.log(geoLocations);
+            // Add start and end markers to map
+            // console.time("sub: Add start and end markers to map");
+            createMarker(map, geoLocations[0], "Origin", markerA);
+            createMarker(map, geoLocations[1], "Destination", markerB);
+            // console.timeEnd("sub: Add start and end markers to map");
+            // Find bike station nearest to each address
+            // console.time("sub: Find Nearest Station");
             return new Promise(function(resolve, reject) {
-              addresses[0].push(findNearestStation(results[0][0]));
-              addresses[1].push(findNearestStation(results[1][0]));
+              stationLocations.push(findNearestStation(results[0]));
+              stationLocations.push(findNearestStation(results[1]));
               resolve();
             });
           })
           // Get directions
           .then(function(results) {
+            // console.timeEnd("sub: Find Nearest Station");
+            // console.time("sub: Get directions");
+            // console.log("stationLocations:");
+            // console.log(stationLocations);
             return Promise.all([
-                getDirections(addresses[0][0], addresses[0][1], "WALKING"),   // start
-                getDirections(addresses[1][0], addresses[1][1], "WALKING"),   // end
-                getDirections(addresses[0][1], addresses[1][1], "BICYCLING")  // middle
+                getDirections(geoLocations[0], stationLocations[0], "WALKING"),   // start
+                getDirections(stationLocations[1], geoLocations[1], "WALKING"),   // end
+                getDirections(stationLocations[0], stationLocations[1], "BICYCLING")  // middle
               ])
           })
           // Sum up direction distance and duration
           .then(function(results) {
+            // console.timeEnd("sub: Get directions");
+            // console.time("sub: Sum up direction distance and duration");
               walkDistance = results[0].routes[0].legs[0].distance.value + results[1].routes[0].legs[0].distance.value;
               walkTime = results[0].routes[0].legs[0].duration.value + results[1].routes[0].legs[0].duration.value;
               bikeDistance = results[2].routes[0].legs[0].distance.value;
@@ -177,27 +194,25 @@
           })
           // Add directions to map and directions panel
           .then(function(results) {
+            // console.timeEnd("sub: Sum up direction distance and duration");
+            // console.time("sub: Add directions to map and directions panel");
             return Promise.all([
                 displayDirections(results[0], "directionsPanelStart"),
                 displayDirections(results[1], "directionsPanelEnd"),
                 displayDirections(results[2], "directionsPanelMiddle")
               ])
           })
-          // Add start and end markers to map
+          // Reset map's bounds based on active markers and display results panel (total distance and duration)
           .then(function(results) {
-            console.log(geoAddresses);
-            return Promise.all([
-                createMarker(map, geoAddresses[0].geometry.location, "Origin", markerA),
-                createMarker(map, geoAddresses[1].geometry.location, "Destination", markerB)
-              ])
-          })
-          // Reset map's bounds based on active markers
-          .then(function(results) {
+            $('#map').removeClass('loading-mask');
+            // console.timeEnd("sub: Add directions to map and directions panel");
+            // console.time("sub: Fit Map to Bounds");
             fitMapToBounds(map, markers);
-          })
-          // Display results panel (total distance and duration)
-          .then(function(results) {
+            // console.timeEnd("sub: Fit Map to Bounds");
+            // console.time("sub: Display Results");
             displayResults();
+            // console.timeEnd("sub: Display Results");
+            // console.timeEnd("Total Time to complete request");            
           })
           .catch(function(status){
             console.log(status);
@@ -214,17 +229,26 @@
       }
 
 
-      function geoCodeAddress(address) {
+      function verifyAddress(address, place, bounds) {
         return new Promise(function(resolve,reject) {
-          // Check if input is a place. Else, assume Address.
-          geocoder.geocode( {'address': address}, function(results, status) {
-            if (status !== google.maps.GeocoderStatus.OK) {
-              console.log(status)
-              reject(status);
+          // Check whether address or place was given.
+          if (place == undefined) {
+            return resolve(geoCodeAddress(address, bounds));
+          } else {
+            resolve(place);
+          }
+        })
+      }
+
+
+      function geoCodeAddress(address, bounds) {
+        return new Promise(function(resolve,reject) {
+          geocoder.geocode( {'address': address, 'bounds': bounds}, function(results, status) {
+            if (status === google.maps.GeocoderStatus.OK) {
+              resolve(results[0]);
             } else {
-              // console.log("Geocoded results:");
-              // console.log(results);
-              resolve(results);
+              window.alert("Unable to verify address: "+address);
+              reject(status);
             }
           });
         });
@@ -269,8 +293,6 @@
                 console.log(status);
                 reject(Error(status));
               } else {
-                console.log("directionsService:");
-                console.log(response);
                 resolve(response);
               }
             });
@@ -307,7 +329,7 @@
         var bounds = new google.maps.LatLngBounds();
         for (var i = 0; i < markers.length; i++) {
           if (markers[i].map != null) {
-            console.log(markers[i].position);
+            // console.log(markers[i].position);
             bounds.extend(markers[i].position);
           }
         }
@@ -316,10 +338,11 @@
 
 
       function displayResults() {
-        // return new Promise(function(resolve,reject) {
-          var totalTimeFormatted, walkDistanceFormatted, bikeDistanceFormatted;
+          var totalTimeFormatted, bikeTimeFormatted, walkTimeFormatted, walkDistanceFormatted, bikeDistanceFormatted;
 
           totalTimeFormatted = (Math.round((walkTime+bikeTime)/60))+" mins";
+          walkTimeFormatted = (Math.round((walkTime)/60))+" mins";
+          bikeTimeFormatted = (Math.round((bikeTime)/60))+" mins";
 
           if (walkDistance <= 160) {
             walkDistanceFormatted = Math.round(walkDistance*3.28084)+" ft";
@@ -333,18 +356,20 @@
             bikeDistanceFormatted = (Math.round(bikeDistance*0.000621371 * 10) / 10)+" mi";
           }
 
-          var resultsList = document.querySelector('results');
+          results.innerHTML = "<h4>Total Travel Time: "+totalTimeFormatted+"</h4><h4>Walking Distance: "+walkDistanceFormatted+" ("+walkTimeFormatted+")</h4><h4>Biking Distance: "+bikeDistanceFormatted+" ("+bikeTimeFormatted+")</h4>";
 
-          results.innerHTML = "<h4>Time to Destination: "+totalTimeFormatted+"</h4><h4>Biking Distance: "+bikeDistanceFormatted+"</h4><h4>Walking Distance: "+walkDistanceFormatted+"</h4>";
-
-          // // Update marker icons in results panel for B-cycle stations
-          // var markerIcons = document.getElementsByClassName('adp-marker');
-          // for (var i = 1; i < markerIcons.length-1; i++) {
-          //     console.log(markerIcons[i]);
-          //     markerIcons[i].src=markerStation;
-          // }
-          // resolve(results);
-        // });
+          // Update marker icons in results panel for B-cycle stations
+          // ISSUE: not evaluating when it needs to
+          var directionPanelMarkers = document.getElementsByClassName("adp-marker");
+          // console.log(directionPanelMarkers);
+          // console.log(directionPanelMarkers.length);
+          for (var i = 1; i < directionPanelMarkers.length-1; i++) {
+              console.log("hello");
+              console.log(directionPanelMarkers[i]);
+              directionPanelMarkers[i].src=markerStation;
+              directionPanelMarkers.style.height = "29px";
+              directionPanelMarkers.style.width = "29px";
+          }
       };
 
       // function createMarker(element, index, array) {
