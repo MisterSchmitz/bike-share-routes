@@ -1,31 +1,21 @@
 # bike-share-routes
-(Dev in progress)
-App showing how to get from point A to B using bike share programs, such as Boulder's B-Cycle
+App showing how to get from point A to B using bike share programs, such as Boulder's B-Cycle or Chicago's Divvy.
+http://bike-share-routes.appspot.com/
 
 ###Features on the backlog:
-Custom DirectionsPanel Markers
+Mobile Styling
 
-Results Styling
+Choose a City
 
-Orgin / Destination / Go Styling
+Utilize Current Location (Station List, Starting Address)
 
-Pan and Zoom map to fit all directions
+Station Status (bikes available / docks open)
 
-Reset
+Alternate Routes
 
-Avoid API cap limit, by searching stations by zip code
-
-Alternate bike route options
-
-Map per leg?
+Handle multiple queries without Refresh
 
 Compare to public transit time
-
-Incorporate stations as custom stops on map for seamless integration
-
-Expand to Denver B-Cycle locations
-
-Expand to Other cities' B-Cycle locations
 
 Reverse Directions
 ...
