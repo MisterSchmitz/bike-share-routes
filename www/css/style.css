@@ -2,10 +2,41 @@
   margin-top: 10px;
 }
 
+.address-input {
+  width: 100%;
+}
+
+#search-button {
+  width: 100%;
+}
+
+#search-box {
+  display: block;
+  left: 0px;
+  height: 25vh;
+  // width:100%;
+  overflow: auto;
+  padding: 1em;
+}
+
+#map {
+  // height: 725px;
+  // float:left;
+  display: block;
+  width: 100%;
+  height: 75vh;
+  margin: 0;
+  padding: 0;
+  // position: relative;
+  // height:100%
+}
+
 #directionsPanel {
-  height: 100%;
-  position: absolute;
-  width:25%;
+  // position: absolute;
+  // float: right;
+  display: block;
+  // width:25%;
+  // max-width: 350px;
   overflow: auto;
   left: 0px;
   padding: 1em;
@@ -13,24 +44,52 @@
   // height 100%
 }
 
-.address-input {
-  width: 100%;
+@media (min-width: 700px) {
+
+  #search-box {
+    position: absolute;
+    left: 0px;
+    height: 20vh;
+    width: 25%;
+    // min-width: 320px;
+    // max-width: 350px;
+    overflow: hidden; 
+    overflow-y: auto;
+    padding: 1em;
+  }
+
+  #directionsPanel {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    height: 80vh;
+    width: 25%;
+    // min-width: 320px;
+    // max-width: 350px;
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    overflow-y: auto; /* Add vertical scrollbar */
+    padding: 1em;
+    // left:-30%;
+    // height 100%
+  }
+
+  #map {
+    position: absolute;
+    top:0px;
+    right: 0px;
+    // height: 725px;
+    float:right;
+    width:75%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    // position: relative;
+    // height:100%
+  }
+
 }
 
-#search {
-  width: 100%;
-}
 
-#map {
-  // height: 725px;
-  float:right;
-  width:75%;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  // position: relative;
-  // height:100%
-}
 
 
 

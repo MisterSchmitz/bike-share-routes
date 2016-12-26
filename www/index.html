@@ -5,31 +5,33 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bike Share Route Finder</title>
-    <link href="css/styles.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/style.css" >
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   </head>
   <body>
-      <div id="directionsPanel">
-        <form class="form-horizontal">
-            <div class="form-group">
-              <!-- <label class="control-label col-sm-2" for="address-start">Origin:</label> -->
-              <div class="col-sm-12">
-                <input type="text" class="form-control address-input" id="address-start" placeholder="Starting address">
-              </div>
+    <div id="search-box">
+      <form class="form-horizontal">
+          <div class="form-group">
+            <!-- <label class="control-label col-sm-2" for="address-start">Origin:</label> -->
+            <div class="col-sm-12">
+              <input type="text" class="form-control address-input" id="address-start" placeholder="Starting address">
             </div>
-            <div class="form-group">
-              <!-- <label class="control-label col-sm-2" for="address-end">Destination:</label> -->
-              <div class="col-sm-12">
-                <input type="text" class="form-control address-input" id="address-end" placeholder="Ending address">
-              </div>
+          </div>
+          <div class="form-group">
+            <!-- <label class="control-label col-sm-2" for="address-end">Destination:</label> -->
+            <div class="col-sm-12">
+              <input type="text" class="form-control address-input" id="address-end" placeholder="Ending address">
             </div>
-        </form>
-        <button type="button" id="search" class="btn btn-success">Go!</button>
-        <div id="results"></div>
-        <div id="directionsPanelStart"></div>
-        <div id="directionsPanelMiddle"></div>
-        <div id="directionsPanelEnd"></div>
+          </div>
+        <button type="button" id="search-button" class="btn btn-success">Go!</button>
+      </form>
+    </div>
+    <div id="directionsPanel">
+      <div id="results"></div>
+      <div id="directionsPanelStart"></div>
+      <div id="directionsPanelMiddle"></div>
+      <div id="directionsPanelEnd"></div>
     </div>
     <div id="map"></div>
 
@@ -49,8 +51,8 @@
       }
 
       // Images
-      var markerA = 'img/markerA.png';
-      var markerB = 'img/markerB.png';
+      var markerA = '/images/markerA.png';
+      var markerB = '/images/markerB.png';
 
       // Google Maps API Callback Function
       function initMap() {
@@ -69,13 +71,13 @@
         var bounds = new google.maps.LatLngBounds();
 
         // Choose Station List
-        // var markerStation = 'img/bcycle.png';
-        var markerStation = 'img/divvy.png';
+        var markerStation = '/images/bcycle.png';
+        // var markerStation = '/images/divvy.png';
 
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_arborbike/station_information.json" // Ann Arbor
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_austin/station_information.json" // Austin
-        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_boulder/station_information.json";  // Boulder
-        var stationInformationUrl = "https://gbfs.divvybikes.com/gbfs/en/station_information.json" //Chicago
+        var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_boulder/station_information.json";  // Boulder
+        // var stationInformationUrl = "https://gbfs.divvybikes.com/gbfs/en/station_information.json" //Chicago
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_denver/station_information.json";   // Denver
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_lametro/station_information.json"; // Los Angeles
         // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_madison/station_information.json"; // Madison
@@ -121,7 +123,7 @@
 /////////////////////////////////////////////////////
         // User initiates search:
 /////////////////////////////////////////////////////        
-        document.getElementById('search').addEventListener('click', function() {
+        document.getElementById('search-button').addEventListener('click', function() {
           // console.time("Total Time to complete request");
 
           clearAllMarkers();
@@ -390,7 +392,7 @@
     </script>
 
     <script async defer
-        src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyAmNH8x1MOyTmnODOCfcfnFdkJ0-pLg1Ew&v=3&callback=initMap">
+        src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyDsJyB7CitZssd6l5SdhL6Q7RtCMZGP3BM&v=3&callback=initMap">
     </script>
 
   </body>
