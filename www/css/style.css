@@ -11,86 +11,56 @@
 }
 
 #search-box {
-  display: block;
+  top: 0px;
   left: 0px;
-  height: 25vh;
-  // width:100%;
+  height: 160px;
   overflow: auto;
   padding: 1em;
 }
 
 #map {
-  // height: 725px;
-  // float:left;
-  display: block;
   width: 100%;
   height: 75vh;
   margin: 0;
   padding: 0;
-  // position: relative;
-  // height:100%
 }
 
 #directionsPanel {
-  // position: absolute;
-  // float: right;
-  display: block;
-  // width:25%;
-  // max-width: 350px;
   overflow: auto;
   left: 0px;
-  padding: 1em;
-  // left:-30%;
-  // height 100%
+  padding-left: 1em;
+  padding-right: 1em;
 }
 
 @media (min-width: 700px) {
 
+  #side-panel {
+    height: 100vh;
+    overflow: auto;
+  }
+
   #search-box {
-    position: absolute;
-    left: 0px;
-    height: 20vh;
+    height: 160px;
     width: 25%;
-    // min-width: 320px;
-    // max-width: 350px;
-    overflow: hidden; 
-    overflow-y: auto;
-    padding: 1em;
+    overflow-x: hidden; 
   }
 
   #directionsPanel {
-    position: absolute;
-    left: 0px;
-    bottom: 0px;
-    height: 80vh;
     width: 25%;
-    // min-width: 320px;
-    // max-width: 350px;
-    overflow-x: hidden; /* Hide horizontal scrollbar */
-    overflow-y: auto; /* Add vertical scrollbar */
-    padding: 1em;
-    // left:-30%;
-    // height 100%
+    height 100%;
   }
 
   #map {
     position: absolute;
     top:0px;
     right: 0px;
-    // height: 725px;
-    float:right;
     width:75%;
     height: 100vh;
     margin: 0;
     padding: 0;
-    // position: relative;
-    // height:100%
   }
 
 }
-
-
-
 
 
 /*

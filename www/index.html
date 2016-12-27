@@ -10,8 +10,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   </head>
   <body>
-    <div id="search-box">
-      <form class="form-horizontal">
+    <div id="side-panel">
+      <div id="search-box">
+        <form class="form-horizontal">
           <div class="form-group">
             <!-- <label class="control-label col-sm-2" for="address-start">Origin:</label> -->
             <div class="col-sm-12">
@@ -24,14 +25,15 @@
               <input type="text" class="form-control address-input" id="address-end" placeholder="Ending address">
             </div>
           </div>
-        <button type="button" id="search-button" class="btn btn-success">Go!</button>
-      </form>
-    </div>
-    <div id="directionsPanel">
-      <div id="results"></div>
-      <div id="directionsPanelStart"></div>
-      <div id="directionsPanelMiddle"></div>
-      <div id="directionsPanelEnd"></div>
+          <button type="button" id="search-button" class="btn btn-success">Go!</button>
+        </form>
+      </div>
+      <div id="directionsPanel">
+        <div id="results"></div>
+        <div id="directionsPanelStart"></div>
+        <div id="directionsPanelMiddle"></div>
+        <div id="directionsPanelEnd"></div>
+      </div>
     </div>
     <div id="map"></div>
 
@@ -65,70 +67,149 @@
         // Initialize Google Maps Services
         geocoder = new google.maps.Geocoder();
         infoWindow = new google.maps.InfoWindow();
-        // distanceMatrixService = new google.maps.DistanceMatrixService;
         directionsService = new google.maps.DirectionsService();
+        // distanceMatrixService = new google.maps.DistanceMatrixService;
 
+      //// Choose city based on current location      
         var bounds = new google.maps.LatLngBounds();
+
+      //// Current Location
+        // Try HTML5 geolocation.
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            // infoWindow.setPosition(pos);
+            // infoWindow.setContent('Current Location.');
+            var currentCity = findNearestCity(pos, cities);
+            console.log(currentCity);
+            pullStations(currentCity.infoUrl, currentCity.markerIcon);
+
+          }, function() {
+            handleLocationError(true, infoWindow, map.getCenter());
+          });
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, infoWindow, map.getCenter());
+        }
+
+        function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+          alert(browserHasGeolocation ?
+                                'Error: The Geolocation service failed.' :
+                                'Error: Your browser doesn\'t support geolocation.');
+          pullStations(cities[5].infoUrl, cities[5].markerIcon);
+        }
 
         // Choose Station List
         var markerStation = '/images/bcycle.png';
-        // var markerStation = '/images/divvy.png';
-
-        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_arborbike/station_information.json" // Ann Arbor
-        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_austin/station_information.json" // Austin
         var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_boulder/station_information.json";  // Boulder
-        // var stationInformationUrl = "https://gbfs.divvybikes.com/gbfs/en/station_information.json" //Chicago
-        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_denver/station_information.json";   // Denver
-        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_lametro/station_information.json"; // Los Angeles
-        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_madison/station_information.json"; // Madison
-        // var stationInformationUrl = "https://gbfs.citibikenyc.com/gbfs/en/station_information.json"; // New York City
-        // var stationInformationUrl = "https://gbfs.bcycle.com/bcycle_indego/station_information.json" // Philadelphia
-        // var stationInformationUrl = "https://gbfs.bayareabikeshare.com/gbfs/en/station_information.json" // San Francisco
-        // var stationInformationUrl = "http://santamonicabikeshare.com/opendata/station_information.json" // Santa Monica
 
         // TODO: Implement station status: https://gbfs.bcycle.com/bcycle_boulder/station_status.json
-        
-        // Generate List of Stations        
-        $.getJSON(stationInformationUrl, function(data) {          
-          $.each(data.data.stations, function(i, station) {
-            // Push the station to our array of stations
-            stations.push(station);
 
-            // Create station markers
-            var marker = new google.maps.Marker({
-              map: map,
-              position: new google.maps.LatLng(station.lat, station.lon),
-              title: station.name,
-              icon: markerStation,
-              id: i
-            });
-            // Push the marker to our array of markers
-            markers.push(marker);
-            // Extend the boundaries of the map for each marker
-            bounds.extend(marker.position);
-          });
-          map.fitBounds(bounds);
-        });
+        var cities = {
+          0: {"city":"Ann Arbor","location": {"lat":42.280826,"lng":-83.743038},"infoUrl":"https://gbfs.bcycle.com/bcycle_arborbike/station_information.json","markerIcon":"/images/bcycle.png"},
+          1: {"city":"Austin","location": {"lat":30.267153,"lng":-97.743061},"infoUrl":"https://gbfs.bcycle.com/bcycle_austin/station_information.json","markerIcon":"/images/bcycle.png"},
+          2: {"city":"Boston","location": {"lat":42.360082,"lng":-71.05888},"infoUrl":"https://gbfs.thehubway.com/gbfs/en/station_information.json","markerIcon":"/images/generic.png"},
+          3: {"city":"Boulder","location": {"lat":40.014986,"lng":-105.270546},"infoUrl":"https://gbfs.bcycle.com/bcycle_boulder/station_information.json","markerIcon":"/images/bcycle.png"},
+          4: {"city":"Chicago","location": {"lat":41.878114,"lng":-87.629798},"infoUrl":"https://gbfs.divvybikes.com/gbfs/en/station_information.json","markerIcon":"/images/divvy.png"},
+          5: {"city":"Denver","location": {"lat":39.739236,"lng":-104.990251},"infoUrl":"https://gbfs.bcycle.com/bcycle_denver/station_information.json","markerIcon":"/images/bcycle.png"},
+          6: {"city":"Los Angeles","location": {"lat":34.052234,"lng":-118.243685},"infoUrl":"https://gbfs.bcycle.com/bcycle_lametro/station_information.json","markerIcon":"/images/bcycle.png"},
+          7: {"city":"Madison","location": {"lat":43.073052,"lng":-89.40123},"infoUrl":"https://gbfs.bcycle.com/bcycle_madison/station_information.json","markerIcon":"/images/bcycle.png"},
+          8: {"city":"Milwaukee","location": {"lat":43.038902,"lng":-87.906474},"infoUrl":"https://gbfs.bcycle.com/bcycle_bublr/station_information.json","markerIcon":"/images/bcycle.png"},
+          9: {"city":"New York City","location": {"lat":40.712784,"lng":-74.005941},"infoUrl":"https://gbfs.citibikenyc.com/gbfs/en/station_information.json","markerIcon":"/images/generic.png"},
+          10: {"city":"Philadelphia","location": {"lat":39.952584,"lng":-75.165222},"infoUrl":"https://gbfs.bcycle.com/bcycle_indego/station_information.json","markerIcon":"/images/bcycle.png"},
+          11: {"city":"San Francisco","location": {"lat":37.774929,"lng":-122.419416},"infoUrl":"https://gbfs.bayareabikeshare.com/gbfs/en/station_information.json","markerIcon":"/images/generic.png"},
+          12: {"city":"Santa Monica","location": {"lat":34.019454,"lng":-118.491191},"infoUrl":"http://santamonicabikeshare.com/opendata/station_information.json","markerIcon":"/images/generic.png"},
+          13: {"city":"Seattle","location": {"lat":47.606209,"lng":-122.332071},"infoUrl":"https://gbfs.prontocycleshare.com/gbfs/en/station_information.json","markerIcon":"/images/generic.png"},
+          14: {"city":"Washington, D.C.","location": {"lat":38.907192,"lng":-77.036871},"infoUrl":"https://gbfs.capitalbikeshare.com/gbfs/en/station_information.json","markerIcon":"/images/generic.png"}
+        }
+
+      function findNearestCity(location, cities) {
+          // Find the closest city, using pyth distance
+          // Get LatLng coordinates for current location
+          var locLat = parseFloat(location.lat);
+          var locLng = parseFloat(location.lng);
+
+          // find the pyth distance of each station to current address, and return index of min distance
+          var pythDistances = [];
+          var min = 10;
+          var currentCity = {};
+
+          $.each(cities, function(i, city) {
+            curr = Math.sqrt(Math.pow(locLat - parseFloat(city.location.lat),2)+Math.pow(locLng - parseFloat(city.location.lng),2));
+            if (curr < min) {
+              min = curr;
+              currentCity = city;
+            }
+          })
+
+          if (min != 10) {
+            return currentCity;
+          }
+          else {
+            alert("No bike share stations found near your location.");
+            return cities[5];
+          }
+      }
 
         // Places autocomplete
         var startAutocomplete = new google.maps.places.Autocomplete(
           document.getElementById('address-start'));    
         var endAutocomplete = new google.maps.places.Autocomplete(
           document.getElementById('address-end'));
-        
-        // Bias the boundaries within the map for the text
-        startAutocomplete.bindTo('bounds', map);
-        endAutocomplete.bindTo('bounds', map);
+
+
+        // Pull Stations from URL
+        function pullStations(url, markerIcon) {
+          clearAllMarkers();
+          markerStation = markerIcon;
+
+          $.getJSON(url, function(data) {          
+            $.each(data.data.stations, function(i, station) {
+              // Push the station to our array of stations
+              stations.push(station);
+              // Create station markers
+              var marker = new google.maps.Marker({
+                map: map,
+                position: new google.maps.LatLng(station.lat, station.lon),
+                title: station.name,
+                icon: markerStation,
+                id: i
+              });
+              // Push the marker to our array of markers
+              markers.push(marker);
+              // Extend the boundaries of the map for each marker
+              bounds.extend(marker.position);
+            });
+            map.fitBounds(bounds);
+            // Bias the boundaries within the map for the text
+            startAutocomplete.bindTo('bounds', map);
+            endAutocomplete.bindTo('bounds', map);
+
+          })
+        }
+
+
+        // // User changes city
+        // var city = document.getElementById('selectCity');
+        // city.addEventListener('change', function() {
+        //   var cityValue = city.value;
+        //   pullStations(cities[cityValue][0],cities[cityValue][1]);
+        // });
+
+        // // User starts new search
+
+        // createStationMarkers(cities[cityValue][1]);
 
 /////////////////////////////////////////////////////
         // User initiates search:
-/////////////////////////////////////////////////////        
+/////////////////////////////////////////////////////
         document.getElementById('search-button').addEventListener('click', function() {
           // console.time("Total Time to complete request");
 
           clearAllMarkers();
-          // document.getElementById("map").style.width = "70%";
-          // document.getElementById("directionsPanel").style.left = "0px";
 
           // User inputs
           addressStart = document.getElementById('address-start').value;
@@ -155,6 +236,7 @@
           // Set Geocoded addresses and find bike station nearest to each address
           .then(function(results) {
             // console.timeEnd("sub: Verify Addresses");
+            // console.log(results);
             geoLocations.push(results[0].geometry.location);
             geoLocations.push(results[1].geometry.location);
             // console.log("geoLocations:");
@@ -247,6 +329,7 @@
         return new Promise(function(resolve,reject) {
           geocoder.geocode( {'address': address, 'bounds': bounds}, function(results, status) {
             if (status === google.maps.GeocoderStatus.OK) {
+              // console.log(results[0]);
               resolve(results[0]);
             } else {
               window.alert("Unable to verify address: "+address);
