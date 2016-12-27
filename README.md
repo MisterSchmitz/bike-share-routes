@@ -1,6 +1,6 @@
 # bike-share-routes
 App showing how to get from point A to B using bike share programs, such as Boulder's B-Cycle or Chicago's Divvy.
-http://bike-share-routes.appspot.com/
+https://bike-share-routes.appspot.com/
 
 ###Features on the backlog:
 Mobile Styling
