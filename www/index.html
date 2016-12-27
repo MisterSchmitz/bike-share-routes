@@ -65,7 +65,7 @@
         // Initialize Google Maps Services
         geocoder = new google.maps.Geocoder();
         infoWindow = new google.maps.InfoWindow();
-        distanceMatrixService = new google.maps.DistanceMatrixService;
+        // distanceMatrixService = new google.maps.DistanceMatrixService;
         directionsService = new google.maps.DirectionsService();
 
         var bounds = new google.maps.LatLngBounds();
@@ -167,8 +167,8 @@
             // Find bike station nearest to each address
             // console.time("sub: Find Nearest Station");
             return new Promise(function(resolve, reject) {
-              stationLocations.push(findNearestStation(results[0]));
-              stationLocations.push(findNearestStation(results[1]));
+              stationLocations.push(findNearestStation(results[0], stations));
+              stationLocations.push(findNearestStation(results[1], stations));
               resolve();
             });
           })
@@ -257,7 +257,7 @@
       }
 
 
-      function findNearestStation(address) {
+      function findNearestStation(address, stations) {
           // console.log(address);
           // Find the closest station, using pyth distance
           // Get LatLng coordinates for current address
