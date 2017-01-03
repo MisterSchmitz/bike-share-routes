@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bike Share Route Finder</title>
     <link rel="stylesheet" type="text/css" href="/css/style.css" >
+    <!-- <script src="https://use.fontawesome.com/df5a729834.js"></script> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   </head>
@@ -16,7 +17,7 @@
           <div class="form-group">
             <!-- <label class="control-label col-sm-2" for="address-start">Origin:</label> -->
             <div class="col-sm-12">
-              <input type="text" class="form-control address-input" id="address-start" placeholder="Starting address">
+              <input type="text" class="form-control address-input" id="address-start" placeholder="Starting Address">
             </div>
           </div>
           <div class="form-group">
@@ -387,7 +388,10 @@
 
       function displayDirections(directions, panel) {
         return new Promise(function(resolve, reject) {
-          var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, suppressBicyclingLayer: true});
+          var directionsDisplay = new google.maps.DirectionsRenderer({
+              suppressMarkers: true, 
+              suppressBicyclingLayer: true, 
+              preserveViewport: true});
           directionsDisplay.setDirections(directions);
           directionsDisplay.setMap(map);
           directionsDisplay.setPanel(document.getElementById(panel));
@@ -441,7 +445,7 @@
             bikeDistanceFormatted = (Math.round(bikeDistance*0.000621371 * 10) / 10)+" mi";
           }
 
-          results.innerHTML = "<h4>Total Travel Time: "+totalTimeFormatted+"</h4><h4>Walking Distance: "+walkDistanceFormatted+" ("+walkTimeFormatted+")</h4><h4>Biking Distance: "+bikeDistanceFormatted+" ("+bikeTimeFormatted+")</h4>";
+          results.innerHTML = "<h4>Travel Time: "+totalTimeFormatted+"</h4><h4>Walk Time: "+walkTimeFormatted+" ("+walkDistanceFormatted+")</h4></i><h4>Bike Time: "+bikeTimeFormatted+" ("+bikeDistanceFormatted+")</h4>";
 
           // Update marker icons in results panel for B-cycle stations
           // ISSUE: not evaluating when it needs to
