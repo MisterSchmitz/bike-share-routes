@@ -1,21 +1,46 @@
-# bike-share-routes
-App showing how to get from point A to B using bike share programs, such as Boulder's B-Cycle or Chicago's Divvy.
-https://bike-share-routes.appspot.com/
+# Bike Share Route Planner
+Web app which uses open bikeshare data and the Google Maps API to plan a bikeshare route between two points.
 
-###Features on the backlog:
-Mobile Styling
+### Features
+- Find the closest bikeshare stations to you and your destination
+- Get walking directions to those stations and biking directions between stations
+- See total travel time and the split between walking and biking time
+- Use real places as your start and end points, powered by the Google Places API
+- Backed by the North American Bike Share Association (NABSA) for live station data 
+- Identifies the closest bikeshare system to you based on your location (as long as data adheres to NABSA standard)
 
-Choose a City
+### How to Use
+1. Navigate to <https://bike-share-routes.appspot.com/>
+Note: for best experience, allow the site to access your location
+2. Choose a starting point and an ending point (start typing and pick from the list of local places).
+3. Go!
 
-Utilize Current Location (Station List, Starting Address)
+### Minimum Technical Requirements
+* Browser with JavaScript enabled
+* Internet access
+* (optional) Location enabled
 
-Station Status (bikes available / docks open)
+### Built With
+JavaScript
+HTML, CSS
+Google Maps API
+Live station data pulled from NABSA ([specs](https://github.com/NABSA/gbfs))
 
-Alternate Routes
+### The Inspiration
+I was living in Boulder, CO, which uses the B-Cycle bikeshare system. At the time, the B-Cycle app could not deliver on a simple request: how can I get from point A to B using their system? The app required me to know which B-Cycle stations were nearest to my start and end points. Google Maps doesn't include bikeshare stations in their biking or transit directions, so there wasn't a seamless way for me to find directions.
 
-Handle multiple queries without Refresh
+I decided to see if I could build something myself. It turns out that I could, and it was a super fun project. It may not be the prettiest app, and the code could definitely benefit from some refactoring, but I delivered on what I set to achieve, and then some.
 
-Compare to public transit time
+### What I learned
+- Client-side web development with JavaScript
+- Asynchronous JavaScript, including the use of Promises
+- Google Maps API
+- Google App Engine
 
-Reverse Directions
-...
+### Where it goes from here
+This project has been set aside for the time being while I focus on my studies, but here are some ideas on where I'd like to take it:
+- Handle multiple queries without Refresh
+- Utilize Current Location for Starting Address
+- Display Station Status (bikes available / docks open)
+- Display Alternate Routes (i.e. is public transit better?)
+- ...
