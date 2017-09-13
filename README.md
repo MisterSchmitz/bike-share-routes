@@ -2,12 +2,11 @@
 Web app which uses open bikeshare data and the Google Maps API to plan a bikeshare route between two points.
 
 ### Features
+- App opens with the bikeshare system map most pertinent to your location
 - Find the closest bikeshare stations to you and your destination
 - Get walking directions to those stations and biking directions between stations
-- See total travel time and the split between walking and biking time
+- See total travel time and the split between walking and biking time, powered by the Google Maps API
 - Use real places as your start and end points, powered by the Google Places API
-- Live station data courtesy the North American Bike Share Association General Bikeshare Feed Specification
-- Identifies the closest bikeshare system to you based on your location (as long as data adheres to NABSA standard)
 
 ### How to Use
 1. Navigate to <https://bike-share-routes.appspot.com/>
@@ -24,12 +23,12 @@ Note: for best experience, allow the site to access your location
 JavaScript
 HTML, CSS
 Google Maps API
-Live station data pulled from NABSA ([specs](https://github.com/NABSA/gbfs))
+Live station data pulled from the North American Bike Share Association ([specs](https://github.com/NABSA/gbfs))
 
 ### The Inspiration
 I was living in Boulder, CO, which uses the B-Cycle bikeshare system. At the time, the B-Cycle app could not deliver on a simple request: how can I get from point A to B using their system? The app required me to know which B-Cycle stations were nearest to my start and end points. Google Maps doesn't include bikeshare stations in their biking or transit directions, so there wasn't a seamless way for me to find directions.
 
-I decided to see if I could build something myself. It turns out that I could, and it was a super fun project. It may not be the prettiest app, and the code could definitely benefit from some refactoring, but I delivered on what I set to achieve, and then some.
+I decided to see if I could build something myself. It turns out that I could, and it was a super fun project. It may not be the prettiest app, and the code could definitely benefit from some refactoring, but I delivered on what I set to achieve, fighting through some challenges and learning a ton throughout the process.
 
 ### What I learned
 - Client-side web development with JavaScript
