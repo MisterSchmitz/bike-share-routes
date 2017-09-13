@@ -6,7 +6,7 @@ Web app which uses open bikeshare data and the Google Maps API to plan a bikesha
 - Get walking directions to those stations and biking directions between stations
 - See total travel time and the split between walking and biking time
 - Use real places as your start and end points, powered by the Google Places API
-- Backed by the North American Bike Share Association (NABSA) for live station data 
+- Live station data courtesy the North American Bike Share Association General Bikeshare Feed Specification
 - Identifies the closest bikeshare system to you based on your location (as long as data adheres to NABSA standard)
 
 ### How to Use
@@ -43,4 +43,3 @@ This project has been set aside for the time being while I focus on my studies, 
 - Utilize Current Location for Starting Address
 - Display Station Status (bikes available / docks open)
 - Display Alternate Routes (i.e. is public transit better?)
-- ...
