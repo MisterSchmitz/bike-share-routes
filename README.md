@@ -9,8 +9,7 @@ Web app which uses open bikeshare data and the Google Maps API to plan a bikesha
 - Use real places as your start and end points, powered by the Google Places API
 
 ### How to Use
-1. Navigate to <https://bike-share-routes.appspot.com/>
-Note: for best experience, allow the site to access your location
+1. Navigate to <https://bike-share-routes.appspot.com/> (for best experience, allow the site to access your location)
 2. Choose a starting point and an ending point (start typing and pick from the list of local places).
 3. Go!
 
@@ -20,10 +19,10 @@ Note: for best experience, allow the site to access your location
 * (optional) Location enabled
 
 ### Built With
-JavaScript
-HTML, CSS
-Google Maps API
-Live station data pulled from the North American Bike Share Association ([specs](https://github.com/NABSA/gbfs))
+- JavaScript
+- HTML, CSS
+- Google Maps API
+- Station data courtesy of the North American Bike Share Association [feed specification](https://github.com/NABSA/gbfs)
 
 ### The Inspiration
 I was living in Boulder, CO, which uses the B-Cycle bikeshare system. At the time, the B-Cycle app could not deliver on a simple request: how can I get from point A to B using their system? The app required me to know which B-Cycle stations were nearest to my start and end points. Google Maps doesn't include bikeshare stations in their biking or transit directions, so there wasn't a seamless way for me to find directions.
